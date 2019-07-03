@@ -79,23 +79,34 @@ namespace WebApplication1.Controllers
         // GET: Students/Create
         public ActionResult Create()
         {
+            StudentCreateViewModel viewModel = new StudentCreateViewModel();
+            
+            
             return View();
         }
 
         // POST: Students/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<ActionResult> Create(StudentCreateViewModel model)
         {
-            try
+            using (SqlConnection conn = Connection)
             {
-                // TODO: Add insert logic here
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"INSERT INTO Student
+                ( FirstName, LastName, Slack, CohortId )
+                VALUES
+                ( @firstName, @lastName, @slack, @cohortId )";
+                    cmd.Parameters.Add(new SqlParameter("@firstName", model.student.FirstName));
+                    cmd.Parameters.Add(new SqlParameter("@lastName", model.student.LastName));
+                    cmd.Parameters.Add(new SqlParameter("@slack", model.student.Slack));
+                    cmd.Parameters.Add(new SqlParameter("@cohortId", model.student.CohortId));
+                    cmd.ExecuteNonQuery();
 
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
+                    return RedirectToAction(nameof(Index));
+                }
             }
         }
 
